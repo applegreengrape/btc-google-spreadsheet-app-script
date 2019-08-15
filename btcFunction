@@ -1,0 +1,64 @@
+function myFunction() {
+ // Make a GET request and log the returned content.
+  var response = UrlFetchApp.fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot');
+  var fact = response.getContentText();
+  var json = JSON.parse(fact)
+ 
+  Logger.log(json.data.amount)
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  
+  
+  for (var i = 2; i <= lastRow; i++){
+
+  sheet.getRange(i,1).setValue([json.data.amount]);
+  
+  }
+  
+  for (var i = 2; i <= lastRow; i++ ){
+  
+    var status = sheet.getRange(i,9).getValues();
+    var price = sheet.getRange(i,1).getValues();
+    var direction = sheet.getRange(i,2).getValues();
+    var buy = sheet.getRange(i,3).getValues();
+    var sell = sheet.getRange(i,4).getValues();
+    var limit = sheet.getRange(i,5).getValues();
+    var stop = sheet.getRange(i,6).getValues();
+    var size = sheet.getRange(i,7).getValues();
+    
+    if ( status[0][0] == "closed"){}
+    else { 
+      
+      if ( direction[0][0] =="long"){ if(price-buy<limit && buy-price<stop){
+      //  Logger.log("still open")
+        sheet.getRange(i,9).setValue("open");
+        var pl = (price-buy)*size
+        sheet.getRange(i,8).setValue(pl);
+      
+      }else{
+        // Logger.log("closed")
+        sheet.getRange(i,9).setValue("closed");
+        var pl = (price-buy)*size
+        sheet.getRange(i,8).setValue(pl);
+        
+      }}
+      
+      else{
+        if( direction[0][0] =="short" ){
+        if(sell-price<limit && price-sell<stop){
+        //  Logger.log("still open")
+        sheet.getRange(i,9).setValue("open");
+        var pl = (sell-price)*size
+        sheet.getRange(i,8).setValue(pl); 
+       
+        }else{
+        // Logger.log("closed")
+        sheet.getRange(i,9).setValue("closed");
+        var pl = (sell-price)*size
+        sheet.getRange(i,8).setValue(pl); 
+        }
+       }
+      }
+    }
+  }
+}
